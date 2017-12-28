@@ -1,6 +1,113 @@
 <?php
 
+/**
+ * @package Util Class in PHP7
+ * @author Jovanni Lo
+ * @link http://www.lodev09.com
+ * @copyright 2017 Jovanni Lo, all rights reserved
+ * @license
+ * The MIT License (MIT)
+ * Copyright (c) 2017 Jovanni Lo
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 class Util {
+    /**
+     * get HTTP code name
+     * @param $code HTTP code
+     *
+     * @return string
+     * code name
+    */
+    public static function http_code($code) {
+        $http_codes = array(
+            100 => 'Continue',
+            101 => 'Switching Protocols',
+            102 => 'Processing',
+            200 => 'OK',
+            201 => 'Created',
+            202 => 'Accepted',
+            203 => 'Non-Authoritative Information',
+            204 => 'No Content',
+            205 => 'Reset Content',
+            206 => 'Partial Content',
+            207 => 'Multi-Status',
+            300 => 'Multiple Choices',
+            301 => 'Moved Permanently',
+            302 => 'Found',
+            303 => 'See Other',
+            304 => 'Not Modified',
+            305 => 'Use Proxy',
+            306 => 'Switch Proxy',
+            307 => 'Temporary Redirect',
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            402 => 'Payment Required',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            406 => 'Not Acceptable',
+            407 => 'Proxy Authentication Required',
+            408 => 'Request Timeout',
+            409 => 'Conflict',
+            410 => 'Gone',
+            411 => 'Length Required',
+            412 => 'Precondition Failed',
+            413 => 'Request Entity Too Large',
+            414 => 'Request-URI Too Long',
+            415 => 'Unsupported Media Type',
+            416 => 'Requested Range Not Satisfiable',
+            417 => 'Expectation Failed',
+            418 => 'I\'m a teapot',
+            422 => 'Unprocessable Entity',
+            423 => 'Locked',
+            424 => 'Failed Dependency',
+            425 => 'Unordered Collection',
+            426 => 'Upgrade Required',
+            449 => 'Retry With',
+            450 => 'Blocked by Windows Parental Controls',
+            500 => 'Internal Server Error',
+            501 => 'Not Implemented',
+            502 => 'Bad Gateway',
+            503 => 'Service Unavailable',
+            504 => 'Gateway Timeout',
+            505 => 'HTTP Version Not Supported',
+            506 => 'Variant Also Negotiates',
+            507 => 'Insufficient Storage',
+            509 => 'Bandwidth Limit Exceeded',
+            510 => 'Not Extended'
+        );
+
+        return isset($http_codes[$code]) ? $http_codes[$code] : 'Unknown code';
+    }
+
+    public static function get($field, $source = null, $default = null) {
+        $source = is_null($source) ? $_GET : $source;
+        if (is_array($source)) {
+            return isset($source[$field]) ? $source[$field] : $default;
+        } else if (is_object($source)) {
+            return isset($source->{$field}) ? $source->{$field} : $default;
+        }
+
+        return $default;
+    }
 
     /**
      * get cli options/switches. If run via http, gets data from $_GET instead
@@ -75,14 +182,14 @@ class Util {
         $validate = self::verify_fields($required, $values, $missing);
         if (!$validate) {
             $missing_fields = array_map(function($option_key) use ($is_cli) {
-                return $is_cli ? "\033[31m$option_key\033[0m" : '<span style="color: #ff5652">'.$option_key.'</span>';
+                return $is_cli ? "\033[31m$option_key\033[0m" : '<span class="text-danger">'.$option_key.'</span>';
             }, $missing);
 
-            $plural = count($missing_fields) > 1;
-
-            $message = self::implode_and($missing_fields).' field'.($plural ? 's' : '').' '.($plural ? 'are' : 'is').' required';
-
-            if (!$is_cli) $message = '<pre>'.$message.'</pre>';
+            if ($missing_fields) {
+                $plural = count($missing_fields) > 1;
+                $message = self::implode_and($missing_fields).' field'.($plural ? 's' : '').' '.($plural ? 'are' : 'is').' required';
+                if (!$is_cli) $message = '<pre>'.$message.'</pre>';
+            }
 
             return false;
         } else return $values;
@@ -92,20 +199,10 @@ class Util {
         return isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX'] == true;
     }
 
-    public static function set_404() {
-        self::set_status(404);
-        include_once self::get_partial('404');
-    }
-
     public static function in_string($needle, $string) {
         if (is_array($needle)) {
             return preg_match('/\b'.implode('\b|\b', $needle).'\b/i', $string) == 1;
         } else return stripos($string, $needle) !== false;
-    }
-
-    public static function get_partial($filename) {
-        $filename = self::in_string('.php', $filename) ? $filename : $filename.'.php';
-        return PARTIALS_PATH.DS.basename($filename);
     }
 
     public static function hash($str) {
@@ -156,23 +253,36 @@ class Util {
         return ltrim($result);
     }
     /**
-     * encode the result to json (used for ajax routines)
+     * encode and print the result to json (used for ajax routines)
      * @param  string $status  status
      * @param  string $message message
      * @param  mixed $data    data
+     * @param bool $return should return json
      * @return string          json encoded string
      */
-    public static function encode_result($status = 'OK', $message = '', $data = array()) {
-        if (!$message) $message = $status == 'OK' ? 'Success' : 'Failed';
+    public static function print_status($status = 200, $data = array(), $options = JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK, $return = false) {
+        if (is_numeric($status)) $status_code = $status;
+        else if (is_bool($status)) $status_code = $status ? 200 : 400;
+        else $status_code = strtolower($status) === 'ok' ? 200 : 400;
 
-        $data = self::object_to_array($data);
+        $status_name = self::http_code($status_code);
+        self::set_status($status_code);
 
-        $result = array_merge(array(
-            'status' => $status,
-            'message' => $message,
-        ), $data);
+        if (!is_array($data) && !$data) {
+            $data = array(
+                'message' => $status_name
+            );
+        } else if (is_string($data)) {
+            $data = array(
+                'message' => $data
+            );
+        }
 
-        return json_encode($result, JSON_PRETTY_PRINT);
+        if ($status_code >= 400 || $status_code < 200) $data['error'] = $status_name;
+
+        $json = json_encode($data, $options);
+        if ($return) return $json;
+        else echo $json;
     }
     /**
      * Check params of an array/object provided by the given required keys
@@ -181,7 +291,11 @@ class Util {
      * @return boolean         true if validated, otherwise false
      */
     public static function verify_fields($required, $fields = null, &$missing = array()) {
-        if (is_null($fields)) $fields = $_GET;
+        if (!$fields) {
+            $missing = $required;
+            return false;
+        }
+
         foreach ($required as $field) {
             $isset = is_array($fields) ? isset($fields[$field]) : isset($fields->{$field});
             if (!$isset) $missing[] = $field;
@@ -189,6 +303,11 @@ class Util {
 
         return $missing ? false : true;
     }
+
+    public static function is_ajax() {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+    }
+
     /**
      * check if the running script is in CLI mode
      * @return boolean [description]
@@ -221,13 +340,13 @@ class Util {
         return $text;
     }
     /**
-     * Set default properties of an array
+     * Set values from default properties of an array
      * @param array $defaults  The defualt array structure
      * @param array $values        The input array
      * @param string $default_key Default key if input is a string or something
      * @return array                    Returns the right array
      */
-    public static function set_defaults(&$defaults, $values, $default_key = "") {
+    public static function set_values($defaults, $values, $default_key = "") {
         if ($default_key != "") {
             if (!is_array($values)) {
                 if (isset($defaults[$default_key])) $defaults[$default_key] = $values;
@@ -235,8 +354,11 @@ class Util {
             }
         }
 
-        foreach ($values as $key => $value)
-            if (array_key_exists($key, $defaults)) $defaults[$key] = $value;
+        if ($values) {
+            foreach ($values as $key => $value) {
+                if (array_key_exists($key, $defaults)) $defaults[$key] = $value;
+            }
+        }
 
         return $defaults;
     }
@@ -306,7 +428,7 @@ class Util {
         return $result;
     }
 
-    public static function truncate_string($string, $limit, $break = " ", $pad = "&hellip;") {
+    public static function truncate($string, $limit, $break = " ", $pad = "&hellip;") {
         // return with no change if string is shorter than $limit
         if (strlen($string) <= $limit) return $string;
         // is $break present between $limit and the end of the string?
@@ -409,24 +531,53 @@ class Util {
             'pattern' => $pattern
         );
     }
-    /**
-     * Returns an encrypted & utf8-encoded
-     */
-    public static function encrypt($pure_string, $encryption_key) {
-        $iv_size = mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB);
-        $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-        $encrypted_string = mcrypt_encrypt(MCRYPT_BLOWFISH, $encryption_key, utf8_encode($pure_string) , MCRYPT_MODE_ECB, $iv);
-        return $encrypted_string;
+    public static function get_random_bytes($length = 32) {
+        if(!isset($length) || intval($length) <= 8 ){
+            $length = 32;
+        }
+
+        if (function_exists('random_bytes')) {
+            return random_bytes($length);
+        }
+
+        if (function_exists('mcrypt_create_iv')) {
+            return mcrypt_create_iv($length, MCRYPT_DEV_URANDOM);
+        }
     }
+
+    /**
+     * Returns an base64 encoded encrypted string
+     */
+    public static function encrypt($data, $key, $iv) {
+        $output = false;
+        $encrypt_method = "AES-256-CBC";
+        // hash
+        $key = self::hash($key);
+
+        // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
+        $iv = substr($iv, 0, 16);
+        $output = openssl_encrypt($data, $encrypt_method, $key, 0, $iv);
+        $output = base64_encode($output);
+
+        return $output;
+    }
+
     /**
      * Returns decrypted original string
      */
-    public static function decrypt($encrypted_string, $encryption_key) {
-        $iv_size = mcrypt_get_iv_size(MCRYPT_BLOWFISH, MCRYPT_MODE_ECB);
-        $iv = mcrypt_create_iv($iv_size, MCRYPT_RAND);
-        $decrypted_string = mcrypt_decrypt(MCRYPT_BLOWFISH, $encryption_key, $encrypted_string, MCRYPT_MODE_ECB, $iv);
-        return $decrypted_string;
+    public static function decrypt($data, $key, $iv) {
+        $output = false;
+        $encrypt_method = "AES-256-CBC";
+        // hash
+        $key = self::hash($key);
+
+        // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
+        $iv = substr($iv, 0, 16);
+        $output = openssl_decrypt(base64_decode($data), $encrypt_method, $key, 0, $iv);
+
+        return $output;
     }
+
     /* takes the input, scrubs bad characters */
     public static function parse_seo_string($input, $replace = '-', $remove_words_array = array()) {
         //make it lowercase, remove punctuation, remove multiple/leading/ending spaces
@@ -479,30 +630,32 @@ class Util {
         }
     }
 
-    public static function clog($msg = '', $append_eol = true, &$log = '') {
-        if (!is_string($msg)) $msg = self::plog($msg, false, true);
-
-        if (self::is_cli()) {
-            $msg = preg_replace('/<br.*?>/', PHP_EOL, $msg);
-            $msg .= $append_eol ? PHP_EOL : '';
-        } else {
-            $msg .= $append_eol ? '<br />' : '';
-        }
-
-        $log .= $msg;
-        echo $msg;
-    }
-
-    public static function plog($var, $pre = true, $return = false) {
-        $info = print_r($var, true);
+    public static function debug($var, $options = null, $return = false) {
         $is_cli = self::is_cli();
+        $is_ajax = self::is_ajax();
+        $is_pjax = self::is_pjax();
+
+        $is_html = !($is_cli || $is_ajax) || $is_pjax;
+        $dismiss = self::get('dismiss', $options, true);
+        $escape = self::get('escape', $options, true);
+        $new_line = self::get('newline', $options, true);
+
+        $close_btn_html = $dismiss ? '
+            <button type="button" class="close" aria-label="Close" onclick="this.parentNode.remove();">
+                <span aria-hidden="true">&times;</span>
+            </button>' : '';
+
+        $info = print_r($var, true);
 
         $info = preg_replace('/\s+\(/', ' (', $info);
         $info = preg_replace('/ {4}([)])/', '$1', $info);
 
-        if (!$is_cli) $info = self::clean_str($info);
+        $result = $is_html ? '
+            <div class="debug">
+                <pre>'.($escape ? self::escape_html($info) : $info).'</pre>
+                '.$close_btn_html.'
+            </div>' : $info.($new_line ? EOL : '');
 
-        $result = $pre && !$is_cli ? "<pre>".$info."</pre>" : $info;
         if ($return) return $result;
         else echo $result;
     }
@@ -623,19 +776,6 @@ class Util {
         ));
     }
 
-    public static function elog($msg) {
-        if (!is_string($msg)) $msg = self::plog($msg, false, true);
-
-        $fp = fopen("portal.log", "a");
-        fputs($fp, "[" . date("d-m-Y h:i:s") . "][Log] $msg\r\n");
-        fclose($fp);
-    }
-
-    public static function wlog($message, $filename, $method = 'a') {
-        $fp = fopen($filename, $method);
-        fputs($fp, $message);
-        fclose($fp);
-    }
     /**
      * redirect()
      *
@@ -648,6 +788,19 @@ class Util {
             exit;
         }
     }
+
+    public static function format_address($data) {
+        $addr = trim(br2nl(get('addr', $data)));
+        $addr1 = trim(br2nl(get('addr1', $data)));
+        $city = trim(get('city', $data));
+        $state = trim(get('state', $data));
+        $zip = trim(get('zip', $data));
+        $county = trim(get('county', $data));
+
+        if (!$addr) return '';
+        return $addr.($addr1 != '' ? ', '.$addr1 : '').', '.$city.', '.($county ? $county.', ' : '').$state.' '.$zip;
+    }
+
     /**
      * format_datetime()
      *
@@ -725,30 +878,33 @@ class Util {
         return $return;
     }
     /**
-     * clean_str()
+     * escape_html()
      *
      * @param mixed $str_value
      * @return
      */
-    public static function clean_str($str_value, $nl2br = false) {
-        if (is_null($str_value)) $str_value = "";
-        $new_str = is_string($str_value) ? htmlentities(html_entity_decode($str_value, ENT_QUOTES)) : $str_value;
-
-        return $nl2br ? nl2br(utf8_encode($new_str)) : utf8_encode($new_str);
+    public static function escape_html($src, $nl2br = false) {
+        if (is_array($src)) {
+            return array_map(array(__CLASS__, 'escape_html'), $src);
+        } else if (is_object($src)) {
+            return (object)array_map(array(__CLASS__, 'escape_html') , object_to_array($src));
+        } else {
+            if (is_null($src)) $src = "";
+            $new_str = is_string($src) ? htmlentities(html_entity_decode($src, ENT_QUOTES)) : $src;
+            return $nl2br ? nl2br($new_str) : $new_str;
+        }
     }
 
-    public static function decode_str($str_value) {
-        if (is_null($str_value)) $str_value = "";
-        $new_str = is_string($str_value) ? html_entity_decode($str_value, ENT_QUOTES) : $str_value;
-        return utf8_encode($new_str);
-    }
-
-    public static function decode_str_array($array) {
-        return array_map("decode_str", $array);
-    }
-
-    public static function decode_str_obj($obj) {
-        return (object)array_map("decode_str", object_to_array($obj));
+    public static function descape_html($src) {
+        if (is_array($src)) {
+            return array_map(array(__CLASS__, 'descape_html'), $src);
+        } else if (is_object($src)) {
+            return (object)array_map(array(__CLASS__, 'descape_html'), object_to_array($src));
+        } else {
+            if (is_null($src)) $src = "";
+            $new_str = is_string($src) ? html_entity_decode($src, ENT_QUOTES) : $src;
+            return $new_str;
+        }
     }
 
     /*public static function br2empty($text) {
@@ -758,41 +914,21 @@ class Util {
     public static function br2nl($text) {
         return preg_replace('/<br\s*\/?>/i', EOL, $text);
     }
-    /**
-     * clean_str_array()
-     *
-     * @param mixed $array
-     * @return
-     */
-    public static function clean_str_array($array) {
-        return array_map("clean_str", $array);
-    }
-    /**
-     * clean_str_obj()
-     *
-     * @param mixed $obj
-     * @return
-     */
-    public static function clean_str_obj($obj) {
-        return (object)array_map(array(
-            __CLASS__,
-            "clean_str"
-        ) , object_to_array($obj));
-    }
+
     /**
      * Convert an object to an array
      * @param object  $object The object to convert
      * @reeturn array
      */
     public static function object_to_array($object) {
+        if (is_array($object)) return $object;
         if (!is_object($object) && !is_array($object)) return $object;
-
         if (is_object($object)) $object = get_object_vars($object);
 
         return array_map(array(
             __CLASS__,
             'object_to_array'
-        ) , $object);
+        ), $object);
     }
     /**
      * Convert an array to an object

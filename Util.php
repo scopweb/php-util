@@ -3,7 +3,7 @@
 /**
  * @package Util Class in PHP7
  * @author Jovanni Lo
- * @link http://www.lodev09.com
+ * @link https://github.com/lodev09/php-util
  * @copyright 2017 Jovanni Lo, all rights reserved
  * @license
  * The MIT License (MIT)

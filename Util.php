@@ -1,5 +1,7 @@
 <?php
 
+namespace Common;
+
 /**
  * @package Util Class in PHP7
  * @author Jovanni Lo
@@ -260,7 +262,7 @@ class Util {
      * @param bool $return should return json
      * @return string          json encoded string
      */
-    public static function print_status($status = 200, $data = array(), $options = JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK, $return = false) {
+    public static function print_status($status = 200, $data = array(), $options = JSON_PRETTY_PRINT, $return = false) {
         if (is_numeric($status)) $status_code = $status;
         else if (is_bool($status)) $status_code = $status ? 200 : 400;
         else $status_code = strtolower($status) === 'ok' ? 200 : 400;

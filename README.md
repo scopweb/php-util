@@ -1,4 +1,4 @@
-Bootstrap PHP
+PHP Util
 ============================
 
 Collection of methods that I or you usually use.

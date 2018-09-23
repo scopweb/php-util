@@ -1,7 +1,7 @@
 Bootstrap PHP
 ============================
 
-A highly extendable PHP library that generate and prints html for [bootstrap](http://getbootstrap.com/).
+Collection of methods that I or you usually use.
 
 ## Installation
 ```term

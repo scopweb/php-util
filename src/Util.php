@@ -807,8 +807,8 @@ class Util {
     }
 
     public static function format_address($data) {
-        $addr = trim(br2nl(get('addr', $data)));
-        $addr1 = trim(br2nl(get('addr1', $data)));
+        $addr = trim(br2nl(get('street_1', $data)));
+        $addr1 = trim(br2nl(get('street_2', $data)));
         $city = trim(get('city', $data));
         $state = trim(get('state', $data));
         $zip = trim(get('zip', $data));

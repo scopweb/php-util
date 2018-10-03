@@ -100,15 +100,20 @@ class Util {
         return isset($http_codes[$code]) ? $http_codes[$code] : 'Unknown code';
     }
 
-    public static function get($field, $source = null, $default = null) {
+    public static function get($field, $source = null, $default = null, $possible_values = []) {
         $source = is_null($source) ? $_GET : $source;
         if (is_array($source)) {
-            return isset($source[$field]) ? $source[$field] : $default;
+            $value = isset($source[$field]) ? $source[$field] : $default;
         } else if (is_object($source)) {
-            return isset($source->{$field}) ? $source->{$field} : $default;
+            $value = isset($source->{$field}) ? $source->{$field} : $default;
         }
 
-        return $default;
+        if ($possible_values) {
+            $possible_values = is_array($possible_values) ? $possible_values : [$possible_values];
+            return in_array($value, $possible_values) ? $value : $default;
+        }
+
+        return $value;
     }
 
     /**

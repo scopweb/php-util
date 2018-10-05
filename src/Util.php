@@ -812,12 +812,12 @@ class Util {
     }
 
     public static function format_address($data) {
-        $addr = trim(br2nl(get('street_1', $data)));
-        $addr1 = trim(br2nl(get('street_2', $data)));
-        $city = trim(get('city', $data));
-        $state = trim(get('state', $data));
-        $zip = trim(get('zip', $data));
-        $county = trim(get('county', $data));
+        $addr = trim(self::br2nl(self::get('street_1', $data)));
+        $addr1 = trim(self::br2nl(self::get('street_2', $data)));
+        $city = trim(self::get('city', $data));
+        $state = trim(self::get('state', $data));
+        $zip = trim(self::get('zip', $data));
+        $county = trim(self::get('county', $data));
 
         if (!$addr) return '';
         return $addr.($addr1 != '' ? ', '.$addr1 : '').', '.$city.', '.($county ? $county.', ' : '').$state.' '.$zip;

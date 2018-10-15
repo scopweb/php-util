@@ -909,7 +909,7 @@ class Util {
         if (is_array($src)) {
             return array_map([__CLASS__, 'escape_html'], $src);
         } else if (is_object($src)) {
-            return (object)array_map([__CLASS__, 'escape_html'] , object_to_array($src));
+            return (object)array_map([__CLASS__, 'escape_html'] , self::to_array($src));
         } else {
             if (is_null($src)) $src = "";
             $new_str = is_string($src) ? htmlentities(html_entity_decode($src, ENT_QUOTES)) : $src;
@@ -921,7 +921,7 @@ class Util {
         if (is_array($src)) {
             return array_map([__CLASS__, 'descape_html'], $src);
         } else if (is_object($src)) {
-            return (object)array_map([__CLASS__, 'descape_html'], object_to_array($src));
+            return (object)array_map([__CLASS__, 'descape_html'], self::to_array($src));
         } else {
             if (is_null($src)) $src = "";
             $new_str = is_string($src) ? html_entity_decode($src, ENT_QUOTES) : $src;
@@ -942,14 +942,14 @@ class Util {
      * @param object  $object The object to convert
      * @reeturn array
      */
-    public static function object_to_array($object) {
+    public static function to_array($object) {
         if (is_array($object)) return $object;
         if (!is_object($object) && !is_array($object)) return $object;
         if (is_object($object)) $object = get_object_vars($object);
 
         return array_map([
             __CLASS__,
-            'object_to_array'
+            'to_array'
         ], $object);
     }
     /**
@@ -957,14 +957,14 @@ class Util {
      * @param array  $array The array to convert
      * @reeturn object
      */
-    public static function array_to_object($array, $recursive = false) {
+    public static function to_object($array, $recursive = false) {
         if (!is_object($array) && !is_array($array)) return $array;
 
         if (!$recursive) return (object)$array;
 
         if (is_array($array)) return (object)array_map([
             __CLASS__,
-            'array_to_object'
+            'to_object'
         ], $array);
         else return $array;
     }

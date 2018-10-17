@@ -235,15 +235,11 @@ class Util {
         return hash('sha256', $str);
     }
 
-    public static function create_token() {
-        return self::create_uid(true);
-    }
-
     public static function save_session_result($data) {
-        $uid = self::create_uid();
-        $_SESSION[$uid] = json_encode($data);
+        $uuid = self::uuid();
+        $_SESSION[$uuid] = json_encode($data);
 
-        return $uid;
+        return $uuid;
     }
 
     public static function get_session_result($token) {
@@ -553,19 +549,6 @@ class Util {
             'pattern' => $pattern
         ];
     }
-    public static function get_random_bytes($length = 32) {
-        if(!isset($length) || intval($length) <= 8 ){
-            $length = 32;
-        }
-
-        if (function_exists('random_bytes')) {
-            return random_bytes($length);
-        }
-
-        if (function_exists('mcrypt_create_iv')) {
-            return mcrypt_create_iv($length, MCRYPT_DEV_URANDOM);
-        }
-    }
 
     /**
      * Returns an base64 encoded encrypted string
@@ -682,102 +665,46 @@ class Util {
         else echo $result;
     }
 
-    public static function mysql_now($format = "Y-m-d H:i") {
-        return "'" . date($format) . "'";
+    public static function uuid() {
+        if (function_exists('com_create_guid') === true)
+            return trim(com_create_guid(), '{}');
+
+        $data = openssl_random_pseudo_bytes(16);
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
-    public static function get_file_info($filename, $icon_prefix = 'octicon') {
-        preg_match('/\.[^\.]+$/i', $filename, $ext);
-        $return = new stdClass;
-        $extetion = isset($ext[0]) ? $ext[0] : '';
-        $category = "";
-        switch (strtolower($extetion)) {
-            case ".pdf":
-            case ".doc":
-            case ".rtf":
-            case ".txt":
-            case ".docx":
-            case ".xls":
-            case ".xlsx":
-                $icon = "$icon_prefix $icon_prefix-file-text";
-                $category = 'document';
-            break;
-            case ".png":
-            case ".jpg":
-            case ".jpeg":
-            case ".gif":
-            case ".bmp":
-            case ".psd":
-            case ".tif":
-            case ".tiff":
-                $icon = "$icon_prefix $icon_prefix-picture";
-                $category = "image";
-            break;
-            case ".mp3":
-            case ".wav":
-            case ".wma":
-            case ".m4a":
-            case ".m3u":
-                $icon = "$icon_prefix $icon_prefix-music";
-                $category = "audio";
-            break;
-            case ".3g2":
-            case ".3gp":
-            case ".asf":
-            case ".asx":
-            case ".avi":
-            case ".flv":
-            case ".m4v":
-            case ".mov":
-            case ".mp4":
-            case ".mpg":
-            case ".srt":
-            case ".swf":
-            case ".vob":
-            case ".wmv":
-                $icon = "$icon_prefix $icon_prefix-film";
-                $category = "video";
-            break;
-            default:
-                $icon = "$icon_prefix $icon_prefix-file-binary";
-                $category = "other";
-            break;
-        }
-        $return->icon_class = $icon;
-        $return->extension = $extetion;
-        $return->category = $category;
-        return $return;
+    public static function random_int($min, $max) {
+        if (function_exists('random_int') === true)
+            return random_int($min, $max);
+
+        $range = $max - $min;
+        if ($range < 1) return $min; // not so random...
+
+        $log = ceil(log($range, 2));
+        $bytes = (int) ($log / 8) + 1; // length in bytes
+        $bits = (int) $log + 1; // length in bits
+        $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
+
+        do {
+            $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
+            $rnd = $rnd & $filter; // discard irrelevant bits
+        } while ($rnd > $range);
+
+        return $min + $rnd;
     }
 
-    public static function doc_viewer($url, $use_google = false) {
-        if ($use_google) self::redirect("http://docs.google.com/viewer?url=" . urlencode($url));
-        else self::redirect($url);
-    }
-
-    public static function create_uid($len = 16) {
-        if (is_bool($len)) $len = $len === true ? 128 : 16;
-
-        $rand = function($min, $max) {
-            $range = $max - $min;
-            if ($range < 1) return $min; // not so random...
-            $log = ceil(log($range, 2));
-            $bytes = (int) ($log / 8) + 1; // length in bytes
-            $bits = (int) $log + 1; // length in bits
-            $filter = (int) (1 << $bits) - 1; // set all lower bits to 1
-            do {
-                $rnd = hexdec(bin2hex(openssl_random_pseudo_bytes($bytes)));
-                $rnd = $rnd & $filter; // discard irrelevant bits
-            } while ($rnd >= $range);
-            return $min + $rnd;
-        };
-
+    public static function token($length = 16) {
         $token = "";
         $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
         $codeAlphabet.= "abcdefghijklmnopqrstuvwxyz";
         $codeAlphabet.= "0123456789";
-        $max = strlen($codeAlphabet) - 1;
-        for ($i=0; $i < $len; $i++)
-            $token .= $codeAlphabet[$rand(0, $max)];
+        $max = strlen($codeAlphabet); // edited
+
+        for ($i=0; $i < $length; $i++) {
+            $token .= $codeAlphabet[self::random_int(0, $max-1)];
+        }
 
         return $token;
     }

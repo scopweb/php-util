@@ -383,19 +383,44 @@ class Util {
     /**
      * Read CSV from URL or File
      * @param  string $filename  Filename
-     * @param  string $delimiter Delimiter
+     * @param  string $headers Delimiter
      * @return array            [description]
      */
-    public static function read_csv($filename, $delimiter = ",") {
-        $file_data = [];
+    public static function read_csv($filename, $with_header = true, $headers = null, $delimiter = ',') {
+        $data = array();
+        $index = 0;
+        $header_count = $headers ? count($headers) : 0;
+
         $handle = @fopen($filename, "r") or false;
         if ($handle !== FALSE) {
-            while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
-                $file_data[] = $data;
+            while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
+                if ($index == 0 && $with_header) {
+                    if (!$headers) $headers = $row;
+                    $header_count = count($headers);
+                } else {
+                    if ($headers) {
+                        $column_count = count($row);
+                        if ($header_count > $column_count) {
+                            $row = array_merge($row, array_fill_keys(range($column_count, $header_count - 1), null));
+                        } else if ($header_count < $column_count) {
+                            $extracted = array_splice($row, $header_count);
+                            $row[$header_count - 1] = $row[$header_count - 1].'|'.implode('|', $extracted);
+                            trigger_error('read_csv: row '.$index.' column mismatch. headers: '.$header_count.', columns: '.$column_count);
+                        }
+
+                        $data[] = array_combine($headers, $row);
+                    } else {
+                        $data[] = $row;
+                    }
+                }
+
+                $index++;
             }
+
             fclose($handle);
         }
-        return $file_data;
+
+        return $data;
     }
     /**
      * Parse email address string

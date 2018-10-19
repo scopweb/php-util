@@ -106,6 +106,8 @@ class Util {
             $value = isset($source[$field]) ? $source[$field] : $default;
         } else if (is_object($source)) {
             $value = isset($source->{$field}) ? $source->{$field} : $default;
+        } else {
+            $value = $default;
         }
 
         if ($possible_values) {
@@ -229,10 +231,6 @@ class Util {
         if (is_array($needle)) {
             return preg_match('/\b'.implode('\b|\b', $needle).'\b/i', $string) == 1;
         } else return stripos($string, $needle) !== false;
-    }
-
-    public static function hash($str) {
-        return hash('sha256', $str);
     }
 
     public static function save_session_result($data) {
@@ -582,7 +580,7 @@ class Util {
         $output = false;
         $encrypt_method = "AES-256-CBC";
         // hash
-        $key = self::hash($key);
+        $key = hash_hmac('sha256', $data, $iv);
 
         // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
         $iv = substr($iv, 0, 16);
@@ -599,7 +597,7 @@ class Util {
         $output = false;
         $encrypt_method = "AES-256-CBC";
         // hash
-        $key = self::hash($key);
+        $key = hash_hmac('sha256', $data, $iv);
 
         // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
         $iv = substr($iv, 0, 16);

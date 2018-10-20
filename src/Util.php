@@ -664,14 +664,8 @@ class Util {
         $is_pjax = self::is_pjax();
 
         $is_html = !($is_cli || $is_ajax) || $is_pjax;
-        $dismiss = self::get('dismiss', $options, true);
         $escape = self::get('escape', $options, true);
         $new_line = self::get('newline', $options, true);
-
-        $close_btn_html = $dismiss ? '
-            <button type="button" class="close" aria-label="Close" onclick="this.parentNode.remove();">
-                <span aria-hidden="true">&times;</span>
-            </button>' : '';
 
         $info = print_r($var, true);
 
@@ -679,10 +673,7 @@ class Util {
         $info = preg_replace('/ {4}([)])/', '$1', $info);
 
         $result = $is_html ? '
-            <div class="debug">
-                <pre>'.($escape ? self::escape_html($info) : $info).'</pre>
-                '.$close_btn_html.'
-            </div>' : $info.($new_line ? EOL : '');
+            <pre>'.($escape ? self::escape_html($info) : $info).'</pre>' : $info.($new_line ? EOL : '');
 
         if ($return) return $result;
         else echo $result;

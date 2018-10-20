@@ -664,7 +664,6 @@ class Util {
         $is_pjax = self::is_pjax();
 
         $is_html = !($is_cli || $is_ajax) || $is_pjax;
-        $escape = self::get('escape', $options, true);
         $new_line = self::get('newline', $options, true);
 
         $info = print_r($var, true);
@@ -672,8 +671,7 @@ class Util {
         $info = preg_replace('/\s+\(/', ' (', $info);
         $info = preg_replace('/ {4}([)])/', '$1', $info);
 
-        $result = $is_html ? '
-            <pre>'.($escape ? self::escape_html($info) : $info).'</pre>' : $info.($new_line ? EOL : '');
+        $result = $is_html ? '<pre>'.$info.'</pre>' : $info.($new_line ? PHP_EOL : '');
 
         if ($return) return $result;
         else echo $result;

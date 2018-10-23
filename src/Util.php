@@ -761,54 +761,6 @@ class Util {
         if (!$addr) return '';
         return $addr.($addr1 != '' ? ', '.$addr1 : '').', '.$city.', '.($county ? $county.', ' : '').$state.' '.$zip;
     }
-
-    /**
-     * format_datetime()
-     *
-     * @param mixed $format
-     * @param mixed $dt
-     * @return
-     */
-    public static function format_datetime($format, $dt = "") {
-        $date = new DateTime($dt);
-        return $date->format($format);
-    }
-
-    public static function isvalid_datetime($format, $dt) {
-        $dt = DateTime::createFromFormat($format, $dt);
-        return $dt !== false && !array_sum($dt->getLastErrors());
-    }
-    /**
-     * get_timestamp()
-     *
-     * @param string $dt
-     * @return
-     */
-    public static function get_timestamp($dt = "") {
-        $date = new DateTime($dt);
-        return $date->getTimestamp();
-    }
-    /**
-     * escape_sql_string()
-     *
-     * @param mixed $value
-     * @return
-     */
-    public static function escape_sql_string($value) {
-        return addslashes($value);
-    }
-    /**
-     * escape_sql_array()
-     *
-     * @param mixed $array
-     * @return
-     */
-    public static function escape_sql_array($array) {
-        foreach ($array as $key => $value) {
-            $array[$key] = (is_string($value)) ? escape_sql_string($value) : $value;
-        }
-        return $array;
-    }
     /**
      * time_in_words()
      *
@@ -817,7 +769,7 @@ class Util {
      */
     public static function time_in_words($date, $with_time = true) {
         if (!$date) return 'N/A';
-        $timestamp = get_timestamp($date);
+        $timestamp = strtotime($date);
         $distance = (round(abs(time() - $timestamp) / 60));
 
         if ($distance <= 1) {

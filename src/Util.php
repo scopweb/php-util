@@ -233,16 +233,20 @@ class Util {
         } else return stripos($string, $needle) !== false;
     }
 
-    public static function save_session_result($data) {
-        $uuid = self::uuid();
-        $_SESSION[$uuid] = json_encode($data);
+    public static function save_session_result($data, $key) {
+        $json_data = json_encode($data);
+        $token = hash_hmac('sha1', $json_data, $key);
+        $_SESSION[$token] = json_encode($data);
 
-        return $uuid;
+        return $token;
     }
 
-    public static function get_session_result($token) {
-        $data = isset($_SESSION[$token]) ? $_SESSION[$token] : null;
-        return json_decode($data);
+    public static function get_session_result($token, $key) {
+        $json_data = isset($_SESSION[$token]) ? $_SESSION[$token] : null;
+
+        // verify data by token
+        $signature = hash_hmac('sha1', $json_data, $key);
+        return $signature === $token ? json_decode($json_data) : false;
     }
 
     public static function explode_ids($src, $separator = ';') {
@@ -642,19 +646,19 @@ class Util {
         header('Content-Type: ' . $type);
     }
 
-    public static function encode_api_result($result, $format = "json") {
+    public static function encode_result($result, $format = 'json') {
         switch ($format) {
-            case "json":
-                set_content_type("application/json");
-                return json_encode($result);
-            break;
-            case "xml":
-                set_content_type("text/xml");
-                $xml = new XMLHelper("Response");
-                return $xml->to_xml($result);
-            break;
+            case 'json':
+                self::set_content_type('application/json');
+                echo json_encode($result);
+                break;
+            case 'xml':
+                self::set_content_type('text/xml');
+                $xml = new XMLHelper('Response');
+                echo $xml->to_xml($result);
+                break;
             default:
-                return $result;
+                echo $result;
         }
     }
 

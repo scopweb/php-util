@@ -126,6 +126,7 @@ class Util {
      */
     public static function get_options($config, &$message = null) {
         if (!$config) return [];
+        if (is_string($config)) $config = [$config];
 
         $config[] = 'help::';
 

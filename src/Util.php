@@ -390,7 +390,7 @@ class Util {
      * @return array            [description]
      */
     public static function read_csv($filename, $with_header = true, $headers = null, $delimiter = ',') {
-        $data = array();
+        $data = [];
         $index = 0;
         $header_count = $headers ? count($headers) : 0;
 
@@ -863,6 +863,70 @@ class Util {
             'to_object'
         ], $array);
         else return $array;
+    }
+
+    public static function unzip($zip_file, $extract_path = null) {
+        $zip = new \ZipArchive;
+        if ($zip->open($zip_file)) {
+            if (!$extract_path) {
+                $path_info = pathinfo($zip_file);
+                $extract_path = $path_info['dirname'].DS;
+            }
+
+            $zip->extractTo($extract_path);
+            $zip->close();
+            return true;
+
+        } return false;
+    }
+
+    /**
+     * Create a compressed zip file
+     * @param  array   $files       files (filename => file_location)
+     * @param  string  $destination destination of the zip file
+     * @param  boolean $overwrite   overwrite if zip file exists
+     * @return [type]               true if success, otherwise false
+     */
+    public static function zip($files = [], $destination = '', $overwrite = false) {
+        // if the zip file already exists and overwrite is false, return false
+        if (file_exists($destination) && !$overwrite) {
+            return false;
+        }
+
+        $valid_files = [];
+        $files = is_array($files) ? $files : [$files];
+        // if files were passed in...
+        if ($files) {
+            // cycle through each file
+            foreach ($files as $filename => $file) {
+                // make sure the file exists
+                if (file_exists($file)) {
+                    if (is_int($filename)) $filename = basename($file);
+                    $valid_files[$filename] = $file;
+                }
+            }
+        }
+
+        // if we have good files...
+        if (count($valid_files)) {
+            // create the archive
+            $zip = new \ZipArchive();
+            if ($zip->open($destination, \ZipArchive::OVERWRITE | \ZipArchive::CREATE) !== true) {
+                return false;
+            }
+            // add the files
+            foreach ($valid_files as $filename => $file) {
+                $zip->addFile($file, $filename);
+            }
+
+            // close the zip -- done!
+            $zip->close();
+
+            // check to make sure the file exists
+            return file_exists($destination);
+        } else {
+            return false;
+        }
     }
 }
 

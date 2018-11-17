@@ -486,6 +486,29 @@ class Util {
 
         return $string;
     }
+
+    // calculate position distance (haversine formula) in miles
+    public static function distance($origin, $dest, $radius = 6371) {
+
+        if (!(isset($origin[0]) && isset($origin[1]))) return false;
+        if (!(isset($dest[0]) && isset($dest[1]))) return false;
+
+        $lat_orig = $origin[0];
+        $lng_orig = $origin[1];
+
+        $lat_dest = $dest[0];
+        $lng_dest = $dest[1];
+
+        $d_lat = deg2rad($lat_dest - $lat_orig);
+        $d_lng = deg2rad($lng_dest - $lng_orig);
+
+        $a = sin($d_lat/2) * sin($d_lat/2) + cos(deg2rad($lat_orig)) * cos(deg2rad($lat_dest)) * sin($d_lng/2) * sin($d_lng/2);
+        $c = 2 * asin(sqrt($a));
+        $d = $radius * $c;
+
+        return $d;
+    }
+
     /**
      * Get the client's IP Address
      * @return string IP address string

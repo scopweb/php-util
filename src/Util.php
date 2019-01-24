@@ -951,6 +951,34 @@ class Util {
             return false;
         }
     }
+
+    // https://stackoverflow.com/questions/16482303/convert-well-known-text-wkt-from-mysql-to-google-maps-polygons-with-php
+    public static function parse_geom($ps) {
+        $arr = array();
+
+        //match '(' and ')' plus contents between them which contain anything other than '(' or ')'
+        preg_match_all('/\([^\(\)]+\)/', $ps, $matches);
+
+        if ($matches = $matches[0]) {
+            foreach ($matches as $match) {
+                preg_match_all('/-?\d+\.?\d*/', $match, $tmp_matches);
+                if ($tmp_matches = $tmp_matches[0]) {
+                    //convert all the coordinate sets in tmp from strings to Numbers and convert to LatLng objects
+                    $position = array();
+                    for ($i = 0; $i < count($tmp_matches); $i += 2) {
+                        $lng = (float)$tmp_matches[$i];
+                        $lat = (float)$tmp_matches[$i + 1];
+                        $position[] = array($lat, $lng);
+                    }
+
+                    $arr[] = $position;
+                }
+            }
+        }
+
+        //array of arrays of LatLng objects, or empty array
+        return $arr;
+    }
 }
 
 ?>

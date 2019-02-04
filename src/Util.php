@@ -779,15 +779,14 @@ class Util {
     }
 
     public static function format_address($data) {
-        $addr = trim(self::br2nl(self::get('street_1', $data)));
-        $addr1 = trim(self::br2nl(self::get('street_2', $data)));
-        $city = trim(self::get('city', $data));
-        $state = trim(self::get('state', $data));
-        $zip = trim(self::get('zip', $data));
-        $county = trim(self::get('county', $data));
+        $components = [];
+        $components[] = self::get('street_1', $data) ? : self::get('street', $data);
+        $components[] = self::get('street_2', $data);
+        $components[] = self::get('city', $data);
+        $components[] = self::get('county', $data);
+        $components[] = self::get('state', $data).' '.self::get('zip', $data);
 
-        if (!$addr) return '';
-        return $addr.($addr1 != '' ? ', '.$addr1 : '').', '.$city.', '.($county ? $county.', ' : '').$state.' '.$zip;
+        return implode(', ', array_filter(array_map(function($component) { return trim(self::br2nl($component)); }, $components)));
     }
     /**
      * time_in_words()

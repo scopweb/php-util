@@ -779,6 +779,8 @@ class Util {
     }
 
     public static function format_address($data) {
+        if (is_string($data)) return $data;
+
         $components = [];
         $components[] = self::get('street_1', $data) ? : self::get('street', $data);
         $components[] = self::get('street_2', $data);

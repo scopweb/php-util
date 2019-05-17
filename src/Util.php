@@ -234,22 +234,6 @@ class Util {
         } else return stripos($string, $needle) !== false;
     }
 
-    public static function save_session_result($data, $key) {
-        $json_data = json_encode($data);
-        $token = hash_hmac('sha1', $json_data, $key);
-        $_SESSION[$token] = json_encode($data);
-
-        return $token;
-    }
-
-    public static function get_session_result($token, $key) {
-        $json_data = isset($_SESSION[$token]) ? $_SESSION[$token] : null;
-
-        // verify data by token
-        $signature = hash_hmac('sha1', $json_data, $key);
-        return $signature === $token ? json_decode($json_data) : false;
-    }
-
     public static function explode_ids($src, $separator = ';') {
         $text = is_array($src) ? implode(';', $src) : $src;
         $raw = preg_replace('/\s+/i', $separator, $text);

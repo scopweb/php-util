@@ -898,6 +898,16 @@ class Util {
         return $input;
     }
 
+    public static function format_ssn($input) {
+        $clean_input = substr(preg_replace('/\D+/i', '', $input), -9);
+        if (preg_match('/^(\d{3})(\d{2})(\d{4})$/', $clean_input, $matches)) {
+            $result = $matches[1].'-'.$matches[2].'-'.$matches[3];
+            return $result;
+        }
+
+        return $input;
+    }
+
     /**
      * Obtain a brand constant from a PAN
      * https://stackoverflow.com/a/21617574/3685987

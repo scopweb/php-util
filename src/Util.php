@@ -472,7 +472,7 @@ class Util {
     }
 
     // calculate position distance (haversine formula) in miles
-    public static function distance($origin, $dest, $radius = 6371) {
+    public static function distance($origin, $dest, $radius = 3959) {
 
         if (!(isset($origin[0]) && isset($origin[1]))) return false;
         if (!(isset($dest[0]) && isset($dest[1]))) return false;

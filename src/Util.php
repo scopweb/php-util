@@ -888,10 +888,10 @@ class Util {
         } return false;
     }
 
-    public static function format_phone($input) {
+    public static function format_phone($input, $country_code = 1) {
         $clean_input = substr(preg_replace('/\D+/i', '', $input), -10);
         if (preg_match('/^(\d{3})(\d{3})(\d{4})$/', $clean_input, $matches)) {
-            $result = '+1 ('.$matches[1].') '.$matches[2].'-'.$matches[3];
+            $result = '+'.$country_code.' ('.$matches[1].') '.$matches[2].'-'.$matches[3];
             return $result;
         }
 

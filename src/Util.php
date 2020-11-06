@@ -325,12 +325,12 @@ class Util {
      * @param  string $text input
      * @return string       output
      */
-    public static function slugify($text, $lowercase = true, $skip_chars = '') {
+    public static function slugify($text, $lowercase = true, $skip_chars = '', $replace = '-') {
 
         // replace non letter or digits by -
-        $text = preg_replace('~[^\\pL\d'.$skip_chars.']+~u', '-', $text);
+        $text = preg_replace('~[^\\pL\d'.$skip_chars.']+~u', $replace, $text);
         // trim
-        $text = trim($text, '-');
+        $text = trim($text, $replace);
         // transliterate
         $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
         // lowercase

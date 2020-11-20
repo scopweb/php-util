@@ -296,14 +296,14 @@ class Util {
      * @return boolean         true if validated, otherwise false
      */
     public static function verify_fields($required, $fields = null, &$missing = []) {
-        if (!$fields) {
+        if (!$fields || is_string($fields)) {
             $missing = $required;
             return false;
         }
 
         foreach ($required as $field) {
-            $isset = is_array($fields) ? isset($fields[$field]) : isset($fields->{$field});
-            if (!$isset) $missing[] = $field;
+            $value = is_array($fields) ? $fields[$field] : $fields->{$field};
+            if (!$value) $missing[] = $field;
         }
 
         return $missing ? false : true;

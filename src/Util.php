@@ -38,7 +38,7 @@ class Util {
      * @return string
      * code name
     */
-    public static function http_code($code) {
+    public static function httpCode($code) {
         $http_codes = [
             100 => 'Continue',
             101 => 'Switching Protocols',
@@ -100,6 +100,10 @@ class Util {
         return isset($http_codes[$code]) ? $http_codes[$code] : 'Unknown code';
     }
 
+    public static function http_code($code) {
+        return self::httpCode($code);
+    }
+
     public static function get($field, $source = null, $default = null, $possible_values = []) {
         $source = is_null($source) ? $_GET : $source;
         if (is_array($source)) {
@@ -124,7 +128,7 @@ class Util {
      * @param  string &$message exception messages
      * @return array | boolean  returns false if not valid, returns array otherwise
      */
-    public static function get_options($config, &$message = null) {
+    public static function getOptions($config, &$message = null) {
         if (!$config) return [];
         if (is_string($config)) $config = [$config];
 
@@ -139,7 +143,7 @@ class Util {
         foreach ($config as $option_raw) {
             if (!$option_raw) continue;
 
-            $option_types = self::explode_clean($option_raw, ',');
+            $option_types = self::explodeClean($option_raw, ',');
 
             // base index to test if required, optional or no value
             $required_base_index = count($option_types) == 1 ? 0 : 1;
@@ -208,7 +212,7 @@ class Util {
             return false;
         }
 
-        $validate = self::verify_fields($required, $values, $missing);
+        $validate = self::verifyFields($required, $values, $missing);
         if (!$validate) {
             $missing_fields = array_map(function($option_key) use ($is_cli) {
                 return $is_cli ? "\033[31m$option_key\033[0m" : '<span class="text-danger">'.$option_key.'</span>';
@@ -216,7 +220,7 @@ class Util {
 
             if ($missing_fields) {
                 $plural = count($missing_fields) > 1;
-                $message = self::implode_and($missing_fields).' field'.($plural ? 's' : '').' '.($plural ? 'are' : 'is').' required';
+                $message = self::implodeAnd($missing_fields).' field'.($plural ? 's' : '').' '.($plural ? 'are' : 'is').' required';
                 if (!$is_cli) $message = '<pre>'.$message.'</pre>';
             }
 
@@ -224,17 +228,29 @@ class Util {
         } else return $values;
     }
 
-    public static function is_pjax() {
+    public static function get_options($config, &$message = null) {
+        return self::getOptions($config, $message);
+    }
+
+    public static function isPjax() {
         return isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX'] == true;
     }
 
-    public static function in_string($needle, $string) {
+    public static function is_pjax() {
+        return self::isPjax();
+    }
+
+    public static function inString($needle, $string) {
         if (is_array($needle)) {
             return preg_match('/\b'.implode('\b|\b', $needle).'\b/i', $string) == 1;
         } else return stripos($string, $needle) !== false;
     }
 
-    public static function explode_ids($src, $separator = ';') {
+    public static function in_tring($needle, $string) {
+        return self::inString($needle, $string);
+    }
+
+    public static function explodeIds($src, $separator = ';') {
         $text = is_array($src) ? implode(';', $src) : $src;
         $raw = preg_replace('/\s+/i', $separator, $text);
         return array_values(array_filter(explode($separator, $raw), function($id) {
@@ -242,13 +258,21 @@ class Util {
         }));
     }
 
-    public static function explode_clean($src, $separator = ';') {
+    public static function explode_ids($src, $separator = ';') {
+        return self::explodeIds($src, $separator);
+    }
+
+    public static function explodeClean($src, $separator = ';') {
         $text = is_array($src) ? implode($separator, $src) : $src;
         $raw = preg_replace('/\s+/i', $separator, $text);
         return array_values(array_filter(explode($separator, $raw), 'strlen'));
     }
 
-    public static function implode_and($arr) {
+    public static function explode_clean($src, $separator = ';') {
+        return self::explode_clean($src, $separator);
+    }
+
+    public static function implodeAnd($arr) {
         if (!is_array($arr)) return $arr;
         $first_key = key(array_slice($arr, 0, 1, TRUE));
         $last_key = key(array_slice($arr, -1, 1, TRUE));
@@ -261,6 +285,11 @@ class Util {
 
         return ltrim($result);
     }
+
+    public static function implode_and($arr) {
+        return self::implodeAnd($arr);
+    }
+
     /**
      * encode and print the result to json (used for ajax routines)
      * @param  string $status  status
@@ -269,13 +298,13 @@ class Util {
      * @param bool $return should return json
      * @return string          json encoded string
      */
-    public static function print_status($status = 200, $data = [], $options = JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK, $return = false) {
+    public static function printStatus($status = 200, $data = [], $options = JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK, $return = false) {
         if (is_numeric($status)) $status_code = $status;
         else if (is_bool($status)) $status_code = $status ? 200 : 400;
         else $status_code = strtolower($status) === 'ok' ? 200 : 400;
 
         $status_name = self::http_code($status_code);
-        self::set_status($status_code);
+        self::setStatus($status_code);
 
         if (!is_array($data) && !$data) {
             $data = ['message' => $status_name];
@@ -289,13 +318,18 @@ class Util {
         if ($return) return $json;
         else echo $json;
     }
+
+    public static function print_status($status = 200, $data = [], $options = JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK, $return = false) {
+        return self::printStatus($status, $options, $return);
+    }
+
     /**
      * Check params of an array/object provided by the given required keys
      * @param  mixed $required array or object that are required
      * @param  mixed $fields  array or object that contains the currrent provided params
      * @return boolean         true if validated, otherwise false
      */
-    public static function verify_fields($required, $fields = null, &$missing = []) {
+    public static function verifyFields($required, $fields = null, &$missing = []) {
         if (!$fields || is_string($fields)) {
             $missing = $required;
             return false;
@@ -309,17 +343,30 @@ class Util {
         return $missing ? false : true;
     }
 
-    public static function is_ajax() {
+    public static function verify_fields($required, $fields = null, &$missing = []) {
+        return self::verifyFields($required, $fields, $missing);
+    }
+
+    public static function isAjax() {
         return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+    }
+
+    public static function is_ajax() {
+        return self::isAjax();
     }
 
     /**
      * check if the running script is in CLI mode
      * @return boolean [description]
      */
-    public static function is_cli() {
+    public static function isCli() {
         return php_sapi_name() == 'cli' || !isset($_SERVER["REQUEST_METHOD"]);
     }
+
+    public static function is_cli() {
+        return self::isCli();
+    }
+
     /**
      * Convert a string to friendly SEO string
      * @param  string $text input
@@ -351,7 +398,7 @@ class Util {
      * @param string $default_key Default key if input is a string or something
      * @return array                    Returns the right array
      */
-    public static function set_values($defaults, $values, $default_key = "") {
+    public static function setValues($defaults, $values, $default_key = "") {
         if ($default_key != "") {
             if (!is_array($values)) {
                 if (isset($defaults[$default_key])) $defaults[$default_key] = $values;
@@ -367,13 +414,18 @@ class Util {
 
         return $defaults;
     }
+
+    public static function set_values($defaults, $values, $default_key = "") {
+        return self::setValues($defaults, $values, $default_key = "");
+    }
+
     /**
      * Read CSV from URL or File
      * @param  string $filename  Filename
      * @param  string $headers Delimiter
      * @return array            [description]
      */
-    public static function read_csv($filename, $with_header = true, $headers = null, $delimiter = ',') {
+    public static function readCsv($filename, $with_header = true, $headers = null, $delimiter = ',') {
         $data = [];
         $index = 0;
         $header_count = $headers ? count($headers) : 0;
@@ -392,7 +444,7 @@ class Util {
                         } else if ($header_count < $column_count) {
                             $extracted = array_splice($row, $header_count);
                             $row[$header_count - 1] = $row[$header_count - 1].'|'.implode('|', $extracted);
-                            trigger_error('read_csv: row '.$index.' column mismatch. headers: '.$header_count.', columns: '.$column_count);
+                            trigger_error('readCsv: row '.$index.' column mismatch. headers: '.$header_count.', columns: '.$column_count);
                         }
 
                         $data[] = array_combine($headers, $row);
@@ -409,13 +461,18 @@ class Util {
 
         return $data;
     }
+
+    public static function read_csv($filename, $with_header = true, $headers = null, $delimiter = ',') {
+        return self::readCsv($filename, $with_header, $headers, $delimiter);
+    }
+
     /**
      * Parse email address string
      * @param  string $str       string input
      * @param  string $separator separator, default ","
      * @return array             array
      */
-    public static function parse_email($str, $separator = ",") {
+    public static function parseEmail($str, $separator = ",") {
 
         $str = trim(preg_replace('/\s+/', ' ', $str));
         $all = [];
@@ -433,7 +490,7 @@ class Util {
             }
 
             if (strpos($email_info->email, $separator) !== false) {
-                $addtl_emails = parse_email($email_info->email, $separator);
+                $addtl_emails = self::parseEmail($email_info->email, $separator);
                 foreach ($addtl_emails as $addtl_email_info) {
                     if ($addtl_email_info->name == "" || $addtl_email_info->name == $addtl_email_info->email) $addtl_email_info->name = $email_info->name;
 
@@ -445,17 +502,26 @@ class Util {
         }
         return $all;
     }
+
+    public static function parse_email($str, $separator = ",") {
+        return self::parseEmail($str, $separator);
+    }
+
     /**
      * Store client session info to an object
      * @return stdClass returns the object containing details of the session
      */
-    public static function get_session_info() {
-        $browser_info = get_browser_info();
+    public static function getSessionInfo() {
+        $browser_info = self::getBrowserInfo();
         $result = new stdClass;
-        $result->ip = get_client_ip();
+        $result->ip = self::getClientIp();
         $result->browser_info = (object)$browser_info;
 
         return $result;
+    }
+
+    public static function get_session_info() {
+        return self::getSessionInfo();
     }
 
     public static function truncate($string, $limit, $break = " ", $pad = "&hellip;") {
@@ -497,7 +563,7 @@ class Util {
      * Get the client's IP Address
      * @return string IP address string
      */
-    public static function get_client_ip() {
+    public static function getClientIp() {
         $ipaddress = '';
         if (getenv('HTTP_CLIENT_IP')) $ipaddress = getenv('HTTP_CLIENT_IP');
         else if (getenv('HTTP_X_FORWARDED_FOR')) $ipaddress = getenv('HTTP_X_FORWARDED_FOR');
@@ -508,11 +574,16 @@ class Util {
         else $ipaddress = 'UNKNOWN';
         return $ipaddress;
     }
+
+    public static function get_client_ip() {
+        return self::getClientIp();
+    }
+
     /**
      * Get your browser's info
      * @return stdClass returns the object containing the info of your browser
      */
-    public static function get_browser_info() {
+    public static function getBrowserInfo() {
         $u_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'UNKNOWN';
         $bname = 'Unknown';
         $platform = 'Unknown';
@@ -585,6 +656,10 @@ class Util {
         ];
     }
 
+    public static function get_browser_info() {
+        return self::getBrowserInfo();
+    }
+
     /**
      * Returns an base64 encoded encrypted string
      */
@@ -618,50 +693,30 @@ class Util {
         return $output;
     }
 
-    /* takes the input, scrubs bad characters */
-    public static function parse_seo_string($input, $replace = '-', $remove_words_array = []) {
-        //make it lowercase, remove punctuation, remove multiple/leading/ending spaces
-        $return = trim(ereg_replace(' +', ' ', preg_replace('/[^a-zA-Z0-9\s]/', '', strtolower($input))));
-        //remove words, if not helpful to seo
-        //i like my defaults list in remove_words(), so I wont pass that array
-
-        if ($remove_words_array) {
-            //separate all words based on spaces
-            $input_array = explode(' ', $return);
-            //create the return array
-            $result = [];
-            //loops through words, remove bad words, keep good ones
-            foreach ($input_array as $word) {
-                //if it's a word we should add...
-                if (!in_array($word, $remove_words_array) && ($unique_words ? !in_array($word, $return) : true)) {
-                    $result[] = $word;
-                }
-            }
-            //return good words separated by dashes
-            $return = implode($replace, $result);
-        }
-        //convert the spaces to whatever the user wants
-        //usually a dash or underscore..
-        //...then return the value.
-        return str_replace(' ', $replace, $return);
-    }
-
-    public static function set_status($status) {
+    public static function setStatus($status) {
         http_response_code($status);
     }
 
-    public static function set_content_type($type = 'application/json') {
+    public static function set_status($status) {
+        return self::setStatus($status);
+    }
+
+    public static function setContentType($type = 'application/json') {
         header('Content-Type: ' . $type);
     }
 
-    public static function encode_result($result, $format = 'json') {
+    public static function set_content_type($type = 'application/json') {
+        self::setContentType();
+    }
+
+    public static function encodeResult($result, $format = 'json') {
         switch ($format) {
             case 'json':
-                self::set_content_type('application/json');
+                self::setContentType('application/json');
                 echo json_encode($result);
                 break;
             case 'xml':
-                self::set_content_type('text/xml');
+                self::setContentType('text/xml');
                 $xml = new XMLHelper('Response');
                 echo $xml->to_xml($result);
                 break;
@@ -670,10 +725,14 @@ class Util {
         }
     }
 
+    public static function encode_result($result, $format = 'json') {
+        self::encodeResult($result, $format);
+    }
+
     public static function debug($var, $options = null, $return = false) {
-        $is_cli = self::is_cli();
-        $is_ajax = self::is_ajax();
-        $is_pjax = self::is_pjax();
+        $is_cli = self::isCli();
+        $is_ajax = self::isAjax();
+        $is_pjax = self::isPjax();
 
         $is_html = !($is_cli || $is_ajax) || $is_pjax;
         $new_line = self::get('newline', $options, true);
@@ -699,7 +758,7 @@ class Util {
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
-    public static function random_int($min, $max) {
+    public static function randomInt($min, $max) {
         if (function_exists('random_int') === true)
             return random_int($min, $max);
 
@@ -719,6 +778,10 @@ class Util {
         return $min + $rnd;
     }
 
+    public static function random_int($min, $max) {
+        return self::randomInt($min, $max);
+    }
+
     public static function token($length = 16) {
         $token = "";
         $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -727,13 +790,13 @@ class Util {
         $max = strlen($codeAlphabet); // edited
 
         for ($i=0; $i < $length; $i++) {
-            $token .= $codeAlphabet[self::random_int(0, $max-1)];
+            $token .= $codeAlphabet[self::randomInt(0, $max-1)];
         }
 
         return $token;
     }
 
-    public static function url_base64_decode($str) {
+    public static function urlBase64Decode($str) {
         return base64_decode(strtr($str, [
             '-' => '+',
             '_' => '=',
@@ -741,12 +804,20 @@ class Util {
         ]));
     }
 
-    public static function url_base64_encode($str) {
+    public static function url_base64_decode($str) {
+        return self::urlBase64Decode($str);
+    }
+
+    public static function urlBase64Encode($str) {
         return strtr(base64_encode($str) , [
             '+' => '-',
             '=' => '_',
             '/' => '~'
         ]);
+    }
+
+    public static function url_base64_encode($str) {
+        return self::urlBase64Encode($str);
     }
 
     /**
@@ -762,7 +833,7 @@ class Util {
         }
     }
 
-    public static function format_address($data) {
+    public static function formatAddress($data) {
         if (is_string($data)) return $data;
 
         $components = [];
@@ -774,13 +845,18 @@ class Util {
 
         return implode(', ', array_filter(array_map(function($component) { return trim(self::br2nl($component)); }, $components)));
     }
+
+    public static function format_address($data) {
+        return self::formatAddress($data);
+    }
+
     /**
-     * time_in_words()
+     * timeInWords()
      *
      * @param mixed $timestamp
      * @return
      */
-    public static function time_in_words($date, $with_time = true) {
+    public static function timeInWords($date, $with_time = true) {
         if (!$date) return 'N/A';
         $timestamp = strtotime($date);
         $distance = (round(abs(time() - $timestamp) / 60));
@@ -803,17 +879,22 @@ class Util {
 
         return $return;
     }
+
+    public static function time_in_words($date, $with_time = true) {
+        return self::timeInWords($date, $with_time);
+    }
+
     /**
-     * escape_html()
+     * escapeHtml()
      *
      * @param mixed $str_value
      * @return
      */
-    public static function escape_html($src, $nl2br = false) {
+    public static function escapeHtml($src, $nl2br = false) {
         if (is_array($src)) {
-            return array_map([__CLASS__, 'escape_html'], $src);
+            return array_map([__CLASS__, 'escapeHtml'], $src);
         } else if (is_object($src)) {
-            return (object)array_map([__CLASS__, 'escape_html'] , self::to_array($src));
+            return (object)array_map([__CLASS__, 'escapeHtml'] , self::to_array($src));
         } else {
             if (is_null($src)) $src = "";
             $new_str = is_string($src) ? htmlentities(html_entity_decode($src, ENT_QUOTES)) : $src;
@@ -821,16 +902,24 @@ class Util {
         }
     }
 
-    public static function descape_html($src) {
+    public static function escape_html($src, $nl2br = false) {
+        return self::escapeHtml($src, $nl2br);
+    }
+
+    public static function descapeHtml($src) {
         if (is_array($src)) {
-            return array_map([__CLASS__, 'descape_html'], $src);
+            return array_map([__CLASS__, 'descapeHtml'], $src);
         } else if (is_object($src)) {
-            return (object)array_map([__CLASS__, 'descape_html'], self::to_array($src));
+            return (object)array_map([__CLASS__, 'descapeHtml'], self::to_array($src));
         } else {
             if (is_null($src)) $src = "";
             $new_str = is_string($src) ? html_entity_decode($src, ENT_QUOTES) : $src;
             return $new_str;
         }
+    }
+
+    public static function descape_html($src) {
+        return self::descapeHtml($src);
     }
 
     /*public static function br2empty($text) {
@@ -846,31 +935,40 @@ class Util {
      * @param object  $object The object to convert
      * @reeturn array
      */
-    public static function to_array($object) {
+    public static function toArray($object) {
         if (is_array($object)) return $object;
         if (!is_object($object) && !is_array($object)) return $object;
         if (is_object($object)) $object = get_object_vars($object);
 
         return array_map([
             __CLASS__,
-            'to_array'
+            'toArray'
         ], $object);
     }
+
+    public static function to_array($object) {
+        return self::toArray($object);
+    }
+
     /**
      * Convert an array to an object
      * @param array  $array The array to convert
      * @reeturn object
      */
-    public static function to_object($array, $recursive = false) {
+    public static function toObject($array, $recursive = false) {
         if (!is_object($array) && !is_array($array)) return $array;
 
         if (!$recursive) return (object)$array;
 
         if (is_array($array)) return (object)array_map([
             __CLASS__,
-            'to_object'
+            'toObject'
         ], $array);
         else return $array;
+    }
+
+    public static function to_object($array, $recursive = false) {
+        return self::toObject($array, $recursive);
     }
 
     public static function unzip($zip_file, $extract_path = null) {
@@ -888,7 +986,7 @@ class Util {
         } return false;
     }
 
-    public static function format_phone($input, $country_code = 1) {
+    public static function formatPhone($input, $country_code = 1) {
         $clean_input = substr(preg_replace('/\D+/i', '', $input), -10);
         if (preg_match('/^(\d{3})(\d{3})(\d{4})$/', $clean_input, $matches)) {
             $result = '+'.$country_code.' ('.$matches[1].') '.$matches[2].'-'.$matches[3];
@@ -898,7 +996,11 @@ class Util {
         return $input;
     }
 
-    public static function format_ssn($input) {
+    public static function format_phone($input, $country_code = 1) {
+        return self::formatPhone($input, $country_code);
+    }
+
+    public static function formatSsn($input) {
         $clean_input = substr(preg_replace('/\D+/i', '', $input), -9);
         if (preg_match('/^(\d{3})(\d{2})(\d{4})$/', $clean_input, $matches)) {
             $result = $matches[1].'-'.$matches[2].'-'.$matches[3];
@@ -906,6 +1008,10 @@ class Util {
         }
 
         return $input;
+    }
+
+    public static function format_ssn($input) {
+        return self::formatSsn($input);
     }
 
     /**
@@ -916,7 +1022,7 @@ class Util {
      * @param type $include_sub_types Include detection of sub visa brands
      * @return string
      */
-    public static function get_card_type($pan, $include_sub_types = false) {
+    public static function getCardType($pan, $include_sub_types = false) {
         $pan = preg_replace('/\D/i', '', $pan);
         //maximum length is not fixed now, there are growing number of CCs has more numbers in length, limiting can give false negatives atm
 
@@ -1008,6 +1114,10 @@ class Util {
         return 'unknown'; //unknown for this system
     }
 
+    public static function get_card_type($pan, $include_sub_types = false) {
+        return self::getCardType($pan, $include_sub_types);
+    }
+
     /**
      * Create a compressed zip file
      * @param  array   $files       files (filename => file_location)
@@ -1058,7 +1168,7 @@ class Util {
     }
 
     // https://stackoverflow.com/questions/16482303/convert-well-known-text-wkt-from-mysql-to-google-maps-polygons-with-php
-    public static function parse_geom($ps) {
+    public static function parseGeom($ps) {
         $arr = array();
 
         //match '(' and ')' plus contents between them which contain anything other than '(' or ')'
@@ -1083,6 +1193,10 @@ class Util {
 
         //array of arrays of LatLng objects, or empty array
         return $arr;
+    }
+
+    public static function parse_geom($ps) {
+        return self::parseGeom($ps);
     }
 }
 

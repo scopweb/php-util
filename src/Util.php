@@ -38,7 +38,7 @@ class Util {
      * @return string
      * code name
     */
-    public static function httpCode($code) {
+    public static function getHttpStatus($code) {
         $http_codes = [
             100 => 'Continue',
             101 => 'Switching Protocols',
@@ -98,10 +98,6 @@ class Util {
         ];
 
         return isset($http_codes[$code]) ? $http_codes[$code] : 'Unknown code';
-    }
-
-    public static function http_code($code) {
-        return self::httpCode($code);
     }
 
     public static function get($field, $source = null, $default = null, $possible_values = []) {
@@ -228,26 +224,14 @@ class Util {
         } else return $values;
     }
 
-    public static function get_options($config, &$message = null) {
-        return self::getOptions($config, $message);
-    }
-
     public static function isPjax() {
         return isset($_SERVER['HTTP_X_PJAX']) && $_SERVER['HTTP_X_PJAX'] == true;
-    }
-
-    public static function is_pjax() {
-        return self::isPjax();
     }
 
     public static function inString($needle, $string) {
         if (is_array($needle)) {
             return preg_match('/\b'.implode('\b|\b', $needle).'\b/i', $string) == 1;
         } else return stripos($string, $needle) !== false;
-    }
-
-    public static function in_tring($needle, $string) {
-        return self::inString($needle, $string);
     }
 
     public static function explodeIds($src, $separator = ';') {
@@ -258,18 +242,10 @@ class Util {
         }));
     }
 
-    public static function explode_ids($src, $separator = ';') {
-        return self::explodeIds($src, $separator);
-    }
-
     public static function explodeClean($src, $separator = ';') {
         $text = is_array($src) ? implode($separator, $src) : $src;
         $raw = preg_replace('/\s+/i', $separator, $text);
         return array_values(array_filter(explode($separator, $raw), 'strlen'));
-    }
-
-    public static function explode_clean($src, $separator = ';') {
-        return self::explode_clean($src, $separator);
     }
 
     public static function implodeAnd($arr) {
@@ -284,10 +260,6 @@ class Util {
         }
 
         return ltrim($result);
-    }
-
-    public static function implode_and($arr) {
-        return self::implodeAnd($arr);
     }
 
     /**
@@ -319,10 +291,6 @@ class Util {
         else echo $json;
     }
 
-    public static function print_status($status = 200, $data = [], $options = JSON_PRETTY_PRINT | JSON_NUMERIC_CHECK, $return = false) {
-        return self::printStatus($status, $options, $return);
-    }
-
     /**
      * Check params of an array/object provided by the given required keys
      * @param  mixed $required array or object that are required
@@ -343,16 +311,8 @@ class Util {
         return $missing ? false : true;
     }
 
-    public static function verify_fields($required, $fields = null, &$missing = []) {
-        return self::verifyFields($required, $fields, $missing);
-    }
-
     public static function isAjax() {
         return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-    }
-
-    public static function is_ajax() {
-        return self::isAjax();
     }
 
     /**
@@ -361,10 +321,6 @@ class Util {
      */
     public static function isCli() {
         return php_sapi_name() == 'cli' || !isset($_SERVER["REQUEST_METHOD"]);
-    }
-
-    public static function is_cli() {
-        return self::isCli();
     }
 
     /**
@@ -415,10 +371,6 @@ class Util {
         return $defaults;
     }
 
-    public static function set_values($defaults, $values, $default_key = "") {
-        return self::setValues($defaults, $values, $default_key = "");
-    }
-
     /**
      * Read CSV from URL or File
      * @param  string $filename  Filename
@@ -462,10 +414,6 @@ class Util {
         return $data;
     }
 
-    public static function read_csv($filename, $with_header = true, $headers = null, $delimiter = ',') {
-        return self::readCsv($filename, $with_header, $headers, $delimiter);
-    }
-
     /**
      * Parse email address string
      * @param  string $str       string input
@@ -503,10 +451,6 @@ class Util {
         return $all;
     }
 
-    public static function parse_email($str, $separator = ",") {
-        return self::parseEmail($str, $separator);
-    }
-
     /**
      * Store client session info to an object
      * @return stdClass returns the object containing details of the session
@@ -518,10 +462,6 @@ class Util {
         $result->browser_info = (object)$browser_info;
 
         return $result;
-    }
-
-    public static function get_session_info() {
-        return self::getSessionInfo();
     }
 
     public static function truncate($string, $limit, $break = " ", $pad = "&hellip;") {
@@ -573,10 +513,6 @@ class Util {
         else if (getenv('REMOTE_ADDR')) $ipaddress = getenv('REMOTE_ADDR');
         else $ipaddress = 'UNKNOWN';
         return $ipaddress;
-    }
-
-    public static function get_client_ip() {
-        return self::getClientIp();
     }
 
     /**
@@ -656,10 +592,6 @@ class Util {
         ];
     }
 
-    public static function get_browser_info() {
-        return self::getBrowserInfo();
-    }
-
     /**
      * Returns an base64 encoded encrypted string
      */
@@ -697,36 +629,8 @@ class Util {
         http_response_code($status);
     }
 
-    public static function set_status($status) {
-        return self::setStatus($status);
-    }
-
     public static function setContentType($type = 'application/json') {
         header('Content-Type: ' . $type);
-    }
-
-    public static function set_content_type($type = 'application/json') {
-        self::setContentType();
-    }
-
-    public static function encodeResult($result, $format = 'json') {
-        switch ($format) {
-            case 'json':
-                self::setContentType('application/json');
-                echo json_encode($result);
-                break;
-            case 'xml':
-                self::setContentType('text/xml');
-                $xml = new XMLHelper('Response');
-                echo $xml->to_xml($result);
-                break;
-            default:
-                echo $result;
-        }
-    }
-
-    public static function encode_result($result, $format = 'json') {
-        self::encodeResult($result, $format);
     }
 
     public static function debug($var, $options = null, $return = false) {
@@ -778,10 +682,6 @@ class Util {
         return $min + $rnd;
     }
 
-    public static function random_int($min, $max) {
-        return self::randomInt($min, $max);
-    }
-
     public static function token($length = 16) {
         $token = "";
         $codeAlphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -804,20 +704,12 @@ class Util {
         ]));
     }
 
-    public static function url_base64_decode($str) {
-        return self::urlBase64Decode($str);
-    }
-
     public static function urlBase64Encode($str) {
         return strtr(base64_encode($str) , [
             '+' => '-',
             '=' => '_',
             '/' => '~'
         ]);
-    }
-
-    public static function url_base64_encode($str) {
-        return self::urlBase64Encode($str);
     }
 
     /**
@@ -844,10 +736,6 @@ class Util {
         $components[] = self::get('state', $data).' '.self::get('zip', $data);
 
         return implode(', ', array_filter(array_map(function($component) { return trim(self::br2nl($component)); }, $components)));
-    }
-
-    public static function format_address($data) {
-        return self::formatAddress($data);
     }
 
     /**
@@ -880,10 +768,6 @@ class Util {
         return $return;
     }
 
-    public static function time_in_words($date, $with_time = true) {
-        return self::timeInWords($date, $with_time);
-    }
-
     /**
      * escapeHtml()
      *
@@ -902,10 +786,6 @@ class Util {
         }
     }
 
-    public static function escape_html($src, $nl2br = false) {
-        return self::escapeHtml($src, $nl2br);
-    }
-
     public static function descapeHtml($src) {
         if (is_array($src)) {
             return array_map([__CLASS__, 'descapeHtml'], $src);
@@ -917,14 +797,6 @@ class Util {
             return $new_str;
         }
     }
-
-    public static function descape_html($src) {
-        return self::descapeHtml($src);
-    }
-
-    /*public static function br2empty($text) {
-        return preg_replace('/<br\s*\/?>/i', '', $text);
-    }*/
 
     public static function br2nl($text) {
         return preg_replace('/<br\s*\/?>/i', EOL, $text);
@@ -946,10 +818,6 @@ class Util {
         ], $object);
     }
 
-    public static function to_array($object) {
-        return self::toArray($object);
-    }
-
     /**
      * Convert an array to an object
      * @param array  $array The array to convert
@@ -965,10 +833,6 @@ class Util {
             'toObject'
         ], $array);
         else return $array;
-    }
-
-    public static function to_object($array, $recursive = false) {
-        return self::toObject($array, $recursive);
     }
 
     public static function unzip($zip_file, $extract_path = null) {
@@ -996,10 +860,6 @@ class Util {
         return $input;
     }
 
-    public static function format_phone($input, $country_code = 1) {
-        return self::formatPhone($input, $country_code);
-    }
-
     public static function formatSsn($input) {
         $clean_input = substr(preg_replace('/\D+/i', '', $input), -9);
         if (preg_match('/^(\d{3})(\d{2})(\d{4})$/', $clean_input, $matches)) {
@@ -1008,10 +868,6 @@ class Util {
         }
 
         return $input;
-    }
-
-    public static function format_ssn($input) {
-        return self::formatSsn($input);
     }
 
     /**
@@ -1114,10 +970,6 @@ class Util {
         return 'unknown'; //unknown for this system
     }
 
-    public static function get_card_type($pan, $include_sub_types = false) {
-        return self::getCardType($pan, $include_sub_types);
-    }
-
     /**
      * Create a compressed zip file
      * @param  array   $files       files (filename => file_location)
@@ -1193,10 +1045,6 @@ class Util {
 
         //array of arrays of LatLng objects, or empty array
         return $arr;
-    }
-
-    public static function parse_geom($ps) {
-        return self::parseGeom($ps);
     }
 }
 

@@ -134,7 +134,7 @@ class Util {
         $short_opts = '';
         $long_opts = [];
         $required = [];
-        $is_cli = self::is_cli();
+        $is_cli = self::isCli();
 
         $options_map = [];
         foreach ($config as $option_raw) {

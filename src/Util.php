@@ -337,7 +337,7 @@ class Util {
         }
 
         foreach ($required as $field) {
-            $value = is_array($fields) ? $fields[$field] : $fields->{$field};
+            $value = is_array($fields) ? $fields[$field] ?? null : $fields->{$field} ?? null;
             if (!$value) $missing[] = $field;
         }
 

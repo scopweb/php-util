@@ -197,7 +197,7 @@ class Util {
             $fields = array_map(function($option_key) use ($is_cli, $required) {
                 if ($option_key == 'help::') return '';
 
-                $required_text = in_array($option_key, $required) ? ' (required)' : '';
+                $required_text = in_array($option_key, $required) ? '' : ' (optional)';
                 return $is_cli ? "\033[31m--$option_key\033[0m$required_text" : '<span class="text-danger">'.$option_key.'</span>';
             }, array_keys($options_map));;
 
@@ -206,7 +206,10 @@ class Util {
             $message .= "\t".trim(implode(PHP_EOL."\t", $fields));
 
             if (!$is_cli) $message = '<pre>'.$message.'</pre>';
-            return false;
+            echo $message.PHP_EOL;
+
+            // stop the script
+            exit;
         }
 
         $validate = self::verifyFields($required, $values, $missing);

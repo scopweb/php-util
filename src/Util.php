@@ -124,6 +124,14 @@ class Util {
      * @param  array $config   options configuration (extended). see php's getopt
      * @param  string &$message exception messages
      * @return array | boolean  returns false if not valid, returns array otherwise
+     * @example
+     * getOptions([
+     *     'myoption,m:' => 'Help text here',
+     *     'foo,f::',
+     *     'bar::'
+     * ], $message)
+     *
+     * Usage: php script.php --myoption=somevalue --foo=fooo --bar=baaar
      */
     public static function getOptions($config, &$message = null) {
         if (!$config) return [];
@@ -134,10 +142,20 @@ class Util {
         $short_opts = '';
         $long_opts = [];
         $required = [];
+        $descriptions = [];
+
         $is_cli = self::isCli();
 
         $options_map = [];
-        foreach ($config as $option_raw) {
+        foreach ($config as $key => $value) {
+            $description = null;
+            if (is_int($key)) {
+                $option_raw = $value;
+            } else {
+                $option_raw = $key;
+                $description = $value;
+            }
+
             if (!$option_raw) continue;
 
             $option_types = self::explodeClean($option_raw, ',');
@@ -170,6 +188,7 @@ class Util {
             }
 
             $options_map[$option_key] = $option_type_keys;
+            $descriptions[$option_key] = $description;
         }
 
         if ($is_cli) {
@@ -194,16 +213,26 @@ class Util {
         }
 
         if (isset($result['help'])) {
-            $fields = array_map(function($option_key) use ($is_cli, $required) {
+            $fields = array_map(function($option_key) use ($is_cli, $required, $descriptions) {
                 if ($option_key == 'help::') return '';
 
+                $description = $descriptions[$option_key] ?? null;
+
                 $required_text = in_array($option_key, $required) ? '' : ' (optional)';
-                return $is_cli ? "\033[31m--$option_key\033[0m$required_text" : '<span class="text-danger">'.$option_key.'</span>';
+                if ($is_cli) {
+                    $help_text = "\033[31m--$option_key\033[0m$required_text";
+                } else {
+                    $help_text = '<span style="color: #d9534f">'.$option_key.'</span> '.$required_text;
+                }
+
+                if ($description) $help_text .= "\t\t".$description;
+                return $help_text;
+
             }, array_keys($options_map));;
 
             $message = 'Usage: php '.$_SERVER['SCRIPT_NAME'].' [options...]'.PHP_EOL;
             $message .= 'Options:'.PHP_EOL;
-            $message .= "\t".trim(implode(PHP_EOL."\t", $fields));
+            $message .= "  ".trim(implode(PHP_EOL."  ", $fields));
 
             if (!$is_cli) $message = '<pre>'.$message.'</pre>';
             echo $message.PHP_EOL;

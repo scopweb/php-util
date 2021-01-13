@@ -762,8 +762,8 @@ class Util {
         if (is_string($data)) return $data;
 
         $components = [];
-        $components[] = self::get($suffix.'_1', $data) ?: self::get($suffix, $data);
-        $components[] = self::get($suffix.'_2', $data);
+        $components[] = self::get($line_suffix.'_1', $data) ?: self::get($line_suffix, $data);
+        $components[] = self::get($line_suffix.'_2', $data);
         $components[] = self::get('city', $data);
         $components[] = self::get('county', $data);
         $components[] = self::get('state', $data).' '.self::get('zip', $data);

@@ -758,17 +758,19 @@ class Util {
         }
     }
 
-    public static function formatAddress($data) {
+    public static function formatAddress($data, $line_suffix = 'street') {
         if (is_string($data)) return $data;
 
         $components = [];
-        $components[] = self::get('street_1', $data) ? : self::get('street', $data);
-        $components[] = self::get('street_2', $data);
+        $components[] = self::get($suffix.'_1', $data) ?: self::get($suffix, $data);
+        $components[] = self::get($suffix.'_2', $data);
         $components[] = self::get('city', $data);
         $components[] = self::get('county', $data);
         $components[] = self::get('state', $data).' '.self::get('zip', $data);
 
-        return implode(', ', array_filter(array_map(function($component) { return trim(self::br2nl($component)); }, $components)));
+        return implode(', ', array_filter(array_map(function($component) {
+            return trim(self::br2nl($component));
+        }, $components)));
     }
 
     /**

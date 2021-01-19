@@ -629,33 +629,18 @@ class Util {
      * Returns an base64 encoded encrypted string
      */
     public static function encrypt($data, $key, $iv) {
-        $output = false;
-        $encrypt_method = "AES-256-CBC";
-        // hash
-        $key = hash_hmac('sha256', $data, $iv);
-
-        // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
+        $encrypt_method = 'AES-256-CBC';
         $iv = substr($iv, 0, 16);
-        $output = openssl_encrypt($data, $encrypt_method, $key, 0, $iv);
-        $output = base64_encode($output);
-
-        return $output;
+        return openssl_encrypt($data, $encrypt_method, $key, 0, $iv);
     }
 
     /**
      * Returns decrypted original string
      */
     public static function decrypt($data, $key, $iv) {
-        $output = false;
-        $encrypt_method = "AES-256-CBC";
-        // hash
-        $key = hash_hmac('sha256', $data, $iv);
-
-        // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
+        $encrypt_method = 'AES-256-CBC';
         $iv = substr($iv, 0, 16);
-        $output = openssl_decrypt(base64_decode($data), $encrypt_method, $key, 0, $iv);
-
-        return $output;
+        return openssl_decrypt($data, $encrypt_method, $key, 0, $iv);
     }
 
     public static function setStatus($status) {

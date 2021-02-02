@@ -793,10 +793,10 @@ class Util {
         } return false;
     }
 
-    public static function formatPhone($input, $country_code = 1) {
+    public static function formatPhone($input, $country_code = 1, $format = '+%1$s (%2$s) %3$s-%4$s') {
         $clean_input = substr(preg_replace('/\D+/i', '', $input), -10);
         if (preg_match('/^(\d{3})(\d{3})(\d{4})$/', $clean_input, $matches)) {
-            $result = '+'.$country_code.' ('.$matches[1].') '.$matches[2].'-'.$matches[3];
+            $result = sprintf($format, $country_code, $matches[1], $matches[2], $matches[3]);
             return $result;
         }
 

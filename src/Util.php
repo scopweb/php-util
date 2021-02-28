@@ -570,6 +570,23 @@ class Util {
         http_response_code($status);
     }
 
+    public static function getHeader($header, $headers = null) {
+        $headers = $headers ? $headers : getallheaders();
+        foreach ($headers as $key => $value) {
+
+            // if $headers is a non-associative array e.g. headers_list()
+            if (is_int($key)) {
+                $parts = explode(':', $value);
+                $key = $parts[0];
+                $value = trim($parts[1]);
+            }
+
+            if (strtolower($key) === strtolower($header)) return $value;
+        }
+
+        return false;
+    }
+
     public static function setContentType($type = 'application/json') {
         header('Content-Type: ' . $type);
     }
@@ -579,7 +596,10 @@ class Util {
         $is_ajax = self::isAjax();
         $is_pjax = self::isPjax();
 
-        $is_html = !($is_cli || $is_ajax) || $is_pjax;
+        // if current header is json, return plain text
+        $content_type = self::getHeader('Content-Type', headers_list());
+
+        $is_html = !($is_cli || $is_ajax || $content_type === 'application/json') || $is_pjax;
         $new_line = self::get('newline', $options, true);
 
         $info = print_r($var, true);

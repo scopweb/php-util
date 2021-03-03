@@ -823,6 +823,16 @@ class Util {
         return $input;
     }
 
+    public static function formatEin($input) {
+        $clean_input = substr(preg_replace('/\D+/i', '', $input), -9);
+        if (preg_match('/^(\d{2})(\d{7})$/', $clean_input, $matches)) {
+            $result = $matches[1].'-'.$matches[2];
+            return $result;
+        }
+
+        return $input;
+    }
+
     public static function formatSsn($input) {
         $clean_input = substr(preg_replace('/\D+/i', '', $input), -9);
         if (preg_match('/^(\d{3})(\d{2})(\d{4})$/', $clean_input, $matches)) {

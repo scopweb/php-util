@@ -91,66 +91,54 @@ class Util {
         510 => 'Not Extended'
     ];
 
-    private static $_mime_types = [
-        'txt' => 'text/plain',
-        'htm' => 'text/html',
-        'html' => 'text/html',
-        'php' => 'text/html',
-        'css' => 'text/css',
-        'js' => 'application/javascript',
-        'json' => 'application/json',
-        'xml' => 'application/xml',
-        'swf' => 'application/x-shockwave-flash',
-        'flv' => 'video/x-flv',
+    private static $_mime_extensions = [
+        'text/plain' => 'txt',
+        'text/html' => 'html',
+        'text/css' => 'css',
+        'application/javascript' => 'js',
+        'application/json' => 'json',
+        'application/xml' => 'xml',
+        'application/x-shockwave-flash' => 'swf',
+        'video/x-flv' => 'flv',
 
         // images
-        'png' => 'image/png',
-        'jpe' => 'image/jpeg',
-        'jpeg' => 'image/jpeg',
-        'jpg' => 'image/jpeg',
-        'gif' => 'image/gif',
-        'bmp' => 'image/bmp',
-        'ico' => 'image/vnd.microsoft.icon',
-        'tiff' => 'image/tiff',
-        'tif' => 'image/tiff',
-        'svg' => 'image/svg+xml',
-        'svgz' => 'image/svg+xml',
+        'image/png' => 'png',
+        'image/jpeg' => 'jpg',
+        'image/gif' => 'gif',
+        'image/bmp' => 'bmp',
+        'image/vnd.microsoft.icon' => 'ico',
+        'image/tiff' => 'tiff',
+        'image/svg+xml' => 'svg',
 
         // archives
-        'zip' => 'application/zip',
-        'rar' => 'application/x-rar-compressed',
-        'exe' => 'application/x-msdownload',
-        'msi' => 'application/x-msdownload',
-        'cab' => 'application/vnd.ms-cab-compressed',
+        'application/zip' => 'zip',
+        'application/x-rar-compressed' => 'rar',
+        'application/x-msdownload' => 'exe',
+        'application/vnd.ms-cab-compressed' => 'cab',
 
         // audio/video
-        'mp3' => 'audio/mpeg',
-        'qt' => 'video/quicktime',
-        'mov' => 'video/quicktime',
-        'wmv' => 'video/x-ms-wmv',
-        'mp4' => 'video/mp4',
-        'mp4a' => 'audio/mp4',
-        'mpeg' => 'video/mpeg',
+        'audio/mpeg' => 'mp3',
+        'video/quicktime' => 'mov',
+        'video/x-ms-wmv' => 'wmv',
+        'video/mp4' => 'mp4',
+        'video/mpeg' => 'mpeg',
 
         // adobe
-        'pdf' => 'application/pdf',
-        'psd' => 'image/vnd.adobe.photoshop',
-        'ai' => 'application/postscript',
-        'eps' => 'application/postscript',
-        'ps' => 'application/postscript',
-        'tiff' => 'image/tiff',
+        'application/pdf' => 'pdf',
+        'image/vnd.adobe.photoshop' => 'psd',
+        'application/postscript' => 'eps',
 
         // ms office
-        'doc' => 'application/msword',
-        'rtf' => 'application/rtf',
-        'xls' => 'application/vnd.ms-excel',
-        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'ppt' => 'application/vnd.ms-powerpoint',
+        'application/msword' => 'doc',
+        'application/rtf' => 'rtf',
+        'application/vnd.ms-excel' => 'xls',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' => 'xlsx',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' => 'docx',
+        'application/vnd.ms-powerpoint' => 'ppt',
 
         // open office
-        'odt' => 'application/vnd.oasis.opendocument.text',
-        'ods' => 'application/vnd.oasis.opendocument.spreadsheet',
+        'application/vnd.oasis.opendocument.text' => 'odt',
+        'application/vnd.oasis.opendocument.spreadsheet' => 'ods',
     ];
 
     /**
@@ -170,7 +158,7 @@ class Util {
      * @return string            The extension
      */
     public static function getExtension($mime_type) {
-        return array_search(strtolower($mime_type), self::$_mime_types);
+        return self::get($mime_type, self::$_mime_extensions);
     }
 
     public static function get($field, $source = null, $default = null, $possible_values = []) {

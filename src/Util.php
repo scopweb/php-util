@@ -3,7 +3,7 @@
 namespace Common;
 
 /**
- * @package Util Class in PHP7
+ * @package Util Class in PHP8
  * @author Jovanni Lo
  * @link https://github.com/lodev09/php-util
  * @copyright 2017 Jovanni Lo, all rights reserved
@@ -300,7 +300,7 @@ class Util {
             // stop the script
             exit;
         }
-
+      
         $validate = self::verifyFields($required, $values, $missing);
         if (!$validate) {
             $missing_fields = array_map(function($option_key) use ($is_cli) {
@@ -368,7 +368,7 @@ class Util {
         else if (is_bool($status)) $status_code = $status ? 200 : 400;
         else $status_code = strtolower($status) === 'ok' ? 200 : 400;
 
-        $status_name = self::http_code($status_code);
+        $status_name = self::$_http_codes[$status_code];
         self::setStatus($status_code);
 
         if (!is_array($data) && !$data) {
@@ -473,39 +473,44 @@ class Util {
     public static function readCsv($filename, $with_header = true, $headers = null, $delimiter = ',') {
         $data = [];
         $index = 0;
-        $header_count = $headers ? count($headers) : 0;
-
+        $header_count = is_countable($headers) ? count($headers) : 0;
+    
         $handle = @fopen($filename, "r") or false;
         if ($handle !== FALSE) {
             while (($row = fgetcsv($handle, 0, $delimiter)) !== FALSE) {
                 if ($index == 0 && $with_header) {
                     if (!$headers) $headers = $row;
-                    $header_count = count($headers);
+                    $header_count = is_countable($headers) ? count($headers) : 0;
                 } else {
                     if ($headers) {
                         $column_count = count($row);
-                        if ($header_count > $column_count) {
-                            $row = array_merge($row, array_fill_keys(range($column_count, $header_count - 1), null));
-                        } else if ($header_count < $column_count) {
-                            $extracted = array_splice($row, $header_count);
-                            $row[$header_count - 1] = $row[$header_count - 1].'|'.implode('|', $extracted);
-                            trigger_error('readCsv: row '.$index.' column mismatch. headers: '.$header_count.', columns: '.$column_count);
+                        if ($header_count == $column_count) {
+                            $data[] = array_combine($headers, $row);
+                        } else {
+                            // Puedes manejar esto de la forma que desees, por ejemplo, omitiendo la fila
+                            // o agregando un registro de error.
+                            // Omitir la fila:
+                            // continue;
+    
+                            // Agregar un registro de error:
+                            $error_message = 'readCsv: row ' . $index . ' column mismatch. headers: ' . $header_count . ', columns: ' . $column_count;
+                            $data[] = ['error' => $error_message];
                         }
-
-                        $data[] = array_combine($headers, $row);
                     } else {
                         $data[] = $row;
                     }
                 }
-
+    
                 $index++;
             }
-
+    
             fclose($handle);
         }
-
+    
         return $data;
-    }
+    }    
+    
+    
 
     /**
      * Parse email address string
@@ -521,7 +526,7 @@ class Util {
         foreach ($emails as $email) {
             $name = "";
             $email = trim($email);
-            $email_info = new stdClass;
+            $email_info = new \stdClass;
             if (preg_match('/(.*?)<(.*)>/', $email, $regs)) {
                 $email_info->name = trim(trim($regs[1]) , '"');
                 $email_info->email = trim($regs[2]);
@@ -550,11 +555,38 @@ class Util {
      */
     public static function getSessionInfo() {
         $browser_info = self::getBrowserInfo();
-        $result = new stdClass;
+        $result = new \stdClass;
         $result->ip = self::getClientIp();
         $result->browser_info = (object)$browser_info;
 
         return $result;
+    }
+
+
+    public static function getBrowserInfo() {
+        $user_agent = $_SERVER['HTTP_USER_AGENT'];
+    
+        $browser_info = new \stdClass;
+        $browser_info->user_agent = $user_agent;
+    
+        // Detectar el navegador utilizando expresiones regulares o alguna otra técnica
+        if (preg_match('/MSIE/i', $user_agent)) {
+            $browser_info->browser = 'Internet Explorer';
+        } elseif (preg_match('/Firefox/i', $user_agent)) {
+            $browser_info->browser = 'Mozilla Firefox';
+        } elseif (preg_match('/Chrome/i', $user_agent)) {
+            $browser_info->browser = 'Google Chrome';
+        } elseif (preg_match('/Safari/i', $user_agent)) {
+            $browser_info->browser = 'Safari';
+        } elseif (preg_match('/Opera/i', $user_agent)) {
+            $browser_info->browser = 'Opera';
+        } else {
+            $browser_info->browser = 'Unknown';
+        }
+    
+        // Puedes agregar más información del navegador según tus necesidades
+    
+        return $browser_info;
     }
 
     public static function truncate($string, $limit, $break = " ", $pad = "&hellip;") {
@@ -818,6 +850,14 @@ class Util {
             if (is_null($src)) $src = "";
             $new_str = is_string($src) ? html_entity_decode($src, ENT_QUOTES) : $src;
             return $new_str;
+        }
+    }
+
+    public static function to_array($obj) {
+        if (is_object($obj)) {
+            return get_object_vars($obj);
+        } else {
+            return $obj;
         }
     }
 

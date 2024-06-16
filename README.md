@@ -16,7 +16,8 @@ echo $slugified;
 ```
 
 ## Credits
-&copy; 2018 - Coded by Jovanni Lo / [@lodev09](http://twitter.com/lodev09)
+© 2024 - Forked and maintained by David Prats / @scopweb
+Based on original work by Jovanni Lo / @lodev09
 
 ## License
 Released under the [MIT License](http://opensource.org/licenses/MIT).

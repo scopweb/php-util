@@ -1,24 +1,23 @@
 {
-    "name": "lodev09/php-util",
-    "description": "Collection of methods that I or you usually use.",
-    "homepage": "https://github.com/lodev09/php-util",
+    "name": "scopweb/php-util",
+    "description": "A utility library for PHP fork lodev09/php-util",
+    "type": "library",
     "license": "MIT",
     "keywords": [
         "php", "class", "util", "common-util", "methods"
     ],
     "authors": [
         {
-            "name": "Jovanni Lo",
-            "email": "lodev09@gmail.com"
+            "name": "David",
+            "email": "scopweb@gmail.com"
         }
     ],
     "require": {
-        "php": ">=5.4",
-        "ralouphie/getallheaders": "^3.0"
+        "php": ">=7.4"
     },
     "autoload": {
         "psr-4": {
-            "Common\\": "src/"
+            "Scopweb\\PhpUtil\\": "src/"
         }
     }
 }

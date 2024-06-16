@@ -5,7 +5,7 @@ Collection of methods that I or you usually use.
 
 ## Installation
 ```term
-$ composer require lodev09/php-util
+$ composer require scopweb/php-util
 ```
 
 ## Usage

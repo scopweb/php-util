@@ -473,7 +473,11 @@ class Util {
     public static function readCsv($filename, $with_header = true, $headers = null, $delimiter = ',') {
         $data = [];
         $index = 0;
-        $header_count = is_countable($headers) ? count($headers) : 0;
+       // Ensure $headers is an array
+        if ($headers === null) {
+            $headers = [];
+        }
+        $header_count = count($headers);     
     
         $handle = @fopen($filename, "r") or false;
         if ($handle !== FALSE) {

@@ -1,7 +1,7 @@
 <?php
 
 namespace Common;
-
+        return preg_replace('/<br\s*\/?>(?i)/', PHP_EOL, $text);
 /**
  * @package Util Class in PHP8
  * @author Jovanni Lo
@@ -568,7 +568,7 @@ class Util {
 
 
     public static function getBrowserInfo() {
-        $user_agent = $_SERVER['HTTP_USER_AGENT'];
+        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
     
         $browser_info = new \stdClass;
         $browser_info->user_agent = $user_agent;
@@ -667,14 +667,31 @@ class Util {
     }
 
     public static function getHeader($header, $headers = null) {
-        $headers = $headers ? $headers : getallheaders();
+        if (!$headers) {
+            if (function_exists('getallheaders')) {
+                $headers = getallheaders();
+            } else {
+                $headers = [];
+                foreach ($_SERVER as $key => $value) {
+                    if (strpos($key, 'HTTP_') === 0) {
+                        $name = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))));
+                        $headers[$name] = $value;
+                    } elseif ($key === 'CONTENT_TYPE') {
+                        $headers['Content-Type'] = $value;
+                    } elseif ($key === 'CONTENT_LENGTH') {
+                        $headers['Content-Length'] = $value;
+                    }
+                }
+                if (!$headers) $headers = headers_list();
+            }
+        }
         foreach ($headers as $key => $value) {
 
             // if $headers is a non-associative array e.g. headers_list()
             if (is_int($key)) {
-                $parts = explode(':', $value);
+                $parts = explode(':', $value, 2);
                 $key = $parts[0];
-                $value = trim($parts[1]);
+                $value = isset($parts[1]) ? trim($parts[1]) : '';
             }
 
             if (strtolower($key) === strtolower($header)) return $value;
@@ -866,7 +883,7 @@ class Util {
     }
 
     public static function br2nl($text) {
-        return preg_replace('/<br\s*\/?>/i', EOL, $text);
+        return preg_replace('/<br\s*\/?>/i', PHP_EOL, $text);
     }
 
     /**
@@ -907,7 +924,17 @@ class Util {
         if ($zip->open($zip_file)) {
             if (!$extract_path) {
                 $path_info = pathinfo($zip_file);
-                $extract_path = $path_info['dirname'].DS;
+                $extract_path = $path_info['dirname'].DIRECTORY_SEPARATOR;
+            }
+
+            // Basic zip slip prevention
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                if (!$stat || !isset($stat['name'])) { continue; }
+                $name = $stat['name'];
+                if (strpos($name, '..') !== false) { $zip->close(); return false; }
+                if ($name !== '' && ($name[0] === '/' || $name[0] === '\\')) { $zip->close(); return false; }
+                if (preg_match('/^[A-Za-z]:\\\\/', $name) === 1) { $zip->close(); return false; }
             }
 
             $zip->extractTo($extract_path);
@@ -951,8 +978,8 @@ class Util {
      * Obtain a brand constant from a PAN
      * https://stackoverflow.com/a/21617574/3685987
      *
-     * @param type $pan               Credit card number
-     * @param type $include_sub_types Include detection of sub visa brands
+    * @param string $pan               Credit card number
+    * @param bool $include_sub_types   Include detection of sub visa brands
      * @return string
      */
     public static function getCardType($pan, $include_sub_types = false) {
